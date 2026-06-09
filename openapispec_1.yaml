@@ -1,51 +1,54 @@
 openapi: 3.0.0
 info:
   title: Advanced Threat Hunt Agent Backend
-  description: >-
-    Synchronous single-turn threat-hunt API. Runs the full agent loop (dynamic
-    KQL generation, all tools, and CVE/MITRE/threat-intel enrichment) and
-    returns an evidence-grounded findings report inline. Read-only.
+  description: Synchronous single-turn threat-hunt API. Runs the full agent loop (dynamic KQL generation, all tools, and CVE/MITRE/threat-intel enrichment) and returns an evidence-grounded findings report inline. Read-only.
   version: "1.0.0"
 servers:
-  - url: https://REPLACE-AT-SETUP.example.net
-    description: Overridden at setup by the BackendEndpoint configuration value.
+  - url: https://mssphuntagent-fn.azurewebsites.net
 paths:
   /api/v1/hunt:
     post:
       operationId: runThreatHunt
       summary: Run a single-turn threat hunt and return an evidence-grounded findings report.
-      description: >-
-        Submits the analyst's natural-language hunt request to the deployed
-        Threat Hunt Agent backend and returns the findings report. Read-only -
-        the backend queries and analyzes the workspace, it does not modify it.
+      description: Submits the analyst's natural-language hunt request to the deployed Threat Hunt Agent backend and returns the findings report. The backend queries and analyzes the workspace; it does not modify it.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - message
-              properties:
-                message:
-                  type: string
-                  description: The analyst's threat-hunt request in natural language.
+              $ref: "#/components/schemas/HuntRequest"
       responses:
-        '200':
+        "200":
           description: The findings report.
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  request_id:
-                    type: string
-                  response:
-                    type: string
-                    description: The markdown findings report.
-                  intent:
-                    type: string
-                  confidence:
-                    type: number
-                  elapsed_ms:
-                    type: integer
+                $ref: "#/components/schemas/HuntResponse"
+components:
+  schemas:
+    HuntRequest:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          description: The analyst's threat-hunt request in natural language.
+    HuntResponse:
+      type: object
+      properties:
+        request_id:
+          type: string
+          description: Unique identifier for the hunt request.
+        response:
+          type: string
+          description: The markdown findings report.
+        intent:
+          type: string
+          description: The classified intent for the request.
+        confidence:
+          type: number
+          description: Classifier confidence for the intent.
+        elapsed_ms:
+          type: integer
+          description: Backend processing time in milliseconds.
